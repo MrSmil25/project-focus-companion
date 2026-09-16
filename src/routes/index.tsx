@@ -40,7 +40,50 @@ const schedule = [
   { day: "Fri", date: "18", items: [{ time: "10:00", title: "Midterm preparation", room: "FEB Library", kind: "Study" }] },
 ];
 
+type EventType = "Lecture" | "Assistant" | "Deadline" | "Study";
+type CalendarEvent = { id: number; type: EventType; day: string; title: string; start: string; end?: string; location?: string; course?: string; person?: string };
+
+const weekDays = [
+  { key: "Mon", label: "Monday", date: "14" },
+  { key: "Tue", label: "Tuesday", date: "15" },
+  { key: "Wed", label: "Wednesday", date: "16" },
+  { key: "Thu", label: "Thursday", date: "17" },
+  { key: "Fri", label: "Friday", date: "18" },
+  { key: "Sat", label: "Saturday", date: "19" },
+  { key: "Sun", label: "Sunday", date: "20" },
+];
+
+const today = "Wed";
+
+const calendarEvents: CalendarEvent[] = [
+  { id: 1, type: "Lecture", day: "Mon", title: "Pengambilan Keputusan Manajerial", start: "08:00", end: "10:30", location: "Room A.306", course: "Pengambilan Keputusan", person: "Dr. Imam Salehudin" },
+  { id: 2, type: "Assistant", day: "Mon", title: "Methods lab", start: "15:00", end: "16:00", location: "Lab Komputer", course: "Metode Riset Bisnis", person: "Alya Safira" },
+  { id: 3, type: "Lecture", day: "Tue", title: "Akuntansi Manajemen untuk Bisnis", start: "08:00", end: "10:30", location: "Room A303", course: "Akuntansi Manajemen", person: "Rahfiani Khairurzka" },
+  { id: 4, type: "Lecture", day: "Tue", title: "Manajemen Produk dan Harga", start: "11:00", end: "13:30", location: "Room A.212", course: "Manajemen Produk", person: "Dr. Karto Adiwijaya" },
+  { id: 5, type: "Study", day: "Tue", title: "Review pricing strategy", start: "16:00", end: "17:30", location: "FEB Library", course: "Manajemen Produk" },
+  { id: 6, type: "Lecture", day: "Wed", title: "Bisnis Internasional", start: "08:00", end: "10:30", location: "Room B.111", course: "Bisnis Internasional", person: "Aswin Dewanto Hadisumarto" },
+  { id: 7, type: "Assistant", day: "Wed", title: "Problem Solving Session", start: "13:00", end: "14:30", location: "Online", course: "Akuntansi Manajemen", person: "Nadia Putri" },
+  { id: 8, type: "Study", day: "Wed", title: "Review Chapter 5", start: "19:00", end: "21:00", location: "Kos · Deep work", course: "Akuntansi Manajemen" },
+  { id: 9, type: "Lecture", day: "Thu", title: "Perencanaan Pemasaran", start: "08:00", end: "10:30", location: "Room B.110", course: "Perencanaan Pemasaran", person: "Dr. Daniel Tumpal" },
+  { id: 10, type: "Assistant", day: "Thu", title: "Case clinic", start: "13:00", end: "14:00", location: "Online", course: "Manajemen Produk", person: "Sri Daryanti" },
+  { id: 11, type: "Lecture", day: "Thu", title: "Metode Riset Bisnis", start: "14:00", end: "16:30", location: "Room B.101", course: "Metode Riset Bisnis", person: "Lenny Suardi" },
+  { id: 12, type: "Study", day: "Thu", title: "Literature matrix drafting", start: "19:00", end: "21:00", location: "FEB Library", course: "Metode Riset Bisnis" },
+  { id: 13, type: "Assistant", day: "Fri", title: "Reading discussion", start: "14:00", end: "15:00", location: "Online", course: "Bisnis Internasional", person: "Fikri Ramadhan" },
+  { id: 14, type: "Deadline", day: "Fri", title: "Pricing Strategy Analysis", start: "23:59", location: "SCELE upload", course: "Manajemen Produk dan Harga" },
+  { id: 15, type: "Study", day: "Sat", title: "Midterm preparation block", start: "10:00", end: "12:00", location: "FEB Library", course: "All courses" },
+  { id: 16, type: "Deadline", day: "Sun", title: "Cost Behavior Worksheet", start: "23:59", location: "SCELE upload", course: "Akuntansi Manajemen" },
+  { id: 17, type: "Study", day: "Sun", title: "Weekly review & planning", start: "16:00", end: "17:00", location: "Personal", course: "Semester planning" },
+];
+
+const eventStyles: Record<EventType, { bar: string; dot: string; chip: string; label: string; icon: typeof Clock3 }> = {
+  Lecture: { bar: "bg-primary", dot: "bg-primary", chip: "bg-primary/20 text-academic", label: "Lecture", icon: GraduationCap },
+  Assistant: { bar: "bg-academic", dot: "bg-academic", chip: "bg-academic/12 text-academic", label: "Assistant session", icon: UserRound },
+  Deadline: { bar: "bg-destructive", dot: "bg-destructive", chip: "bg-destructive/12 text-destructive", label: "Deadline", icon: FileText },
+  Study: { bar: "bg-success", dot: "bg-success", chip: "bg-success/12 text-success", label: "Personal study", icon: BookOpen },
+};
+
 const initialTasks: Task[] = [
+
   { id: 1, title: "Marketing Analysis", course: "Perencanaan Pemasaran", due: "20 Sep", priority: "High", done: false },
   { id: 2, title: "Cost behavior worksheet", course: "Akuntansi Manajemen", due: "22 Sep", priority: "Medium", done: false },
   { id: 3, title: "Read chapter 4", course: "Bisnis Internasional", due: "Today", priority: "Medium", done: false },
