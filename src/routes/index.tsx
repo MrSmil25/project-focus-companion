@@ -249,7 +249,7 @@ function CalendarView() {
     return map;
   }, [filter]);
 
-  const selected = weekDays.find(day => day.key === selectedDay) ?? weekDays[0];
+  const selected = weekDays.find(day => day.key === selectedDay) ?? weekDays[0]!;
   const todayLabel = weekDays.find(day => day.key === today);
   const todayEvents = useMemo(() => calendarEvents.filter(e => e.day === today).sort((a, b) => a.start.localeCompare(b.start)), []);
   const upcomingDeadlines = useMemo(() => calendarEvents.filter(e => e.type === "Deadline").sort((a, b) => a.day.localeCompare(b.day)), []);
@@ -306,7 +306,7 @@ function CalendarView() {
     <div className="md:hidden">
       <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">{selected.label}, {selected.date} September</p>
       <div className="space-y-3">
-        {byDay[selected.key]?.length ? byDay[selected.key].map(event => <EventCard key={event.id} event={event} />) : <div className="academic-card p-6 text-center text-sm text-muted-foreground">Nothing scheduled for this day.</div>}
+        {byDay[selected.key]?.length ? byDay[selected.key]!.map(event => <EventCard key={event.id} event={event} />) : <div className="academic-card p-6 text-center text-sm text-muted-foreground">Nothing scheduled for this day.</div>}
       </div>
     </div>
 
