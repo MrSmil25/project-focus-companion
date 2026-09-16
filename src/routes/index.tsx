@@ -10,7 +10,14 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type View = "home" | "courses" | "calendar" | "tasks" | "library";
-type Task = { id: number; title: string; course: string; due: string; priority: "High" | "Medium"; done: boolean };
+type TaskCategory = "Accounting" | "Marketing" | "Entrepreneurship" | "Research";
+type TaskStatus = "Not started" | "In progress" | "Completed";
+type ChecklistItem = { id: number; label: string; done: boolean };
+type Task = {
+  id: number; title: string; course: string; courseCode?: string; category: TaskCategory;
+  due: string; dueDate: string; priority: "High" | "Medium" | "Low"; status: TaskStatus; done: boolean;
+  description: string; attachments: string[]; checklist: ChecklistItem[];
+};
 type CourseTask = { id: number; title: string; due: string; priority: "High" | "Medium"; status: "Not started" | "In progress" | "Completed" };
 type CourseNote = { id: number; title: string; topic: string; body: string; attachment?: string };
 type CourseMaterial = { id: number; title: string; type: "Textbook" | "PDF" | "Slides" | "External link" | "Article"; description: string; attachment: string };
