@@ -200,7 +200,7 @@ function AcademicApp() {
             {view === "home" && <HomeView tasks={tasks} toggleTask={toggleTask} navigate={navigate} />}
             {view === "courses" && <CoursesView onOpen={setWorkspace} />}
             {view === "calendar" && <CalendarView />}
-            {view === "tasks" && <TasksView tasks={tasks} toggleTask={toggleTask} showAdd={showAdd} setShowAdd={setShowAdd} newTask={newTask} setNewTask={setNewTask} addTask={addTask} />}
+            {view === "tasks" && <TasksView tasks={tasks} toggleTask={toggleTask} updateTask={updateTask} addTask={addTask} navigate={navigate} />}
             {view === "library" && <LibraryView />}
           </div>
         )}
