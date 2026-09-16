@@ -600,6 +600,73 @@ function TaskDetail({ task, onBack, updateTask, toggleTask, navigate }: { task: 
   </div>;
 }
 
+const fileKinds: Record<string, string> = { pdf: "PDF", doc: "DOC", docx: "DOCX", xls: "XLS", xlsx: "XLSX", ppt: "PPT", pptx: "PPTX", png: "Image", jpg: "Image", jpeg: "Image", webp: "Image", gif: "Image" };
+const extOf = (name: string) => fileKinds[name.split(".").pop()?.toLowerCase() ?? ""] ?? "File";
+const formatSize = (bytes?: number) => bytes === undefined ? "" : bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+const normalizeUrl = (value: string) => { const trimmed = value.trim(); if (!trimmed) return ""; return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed.replace(/^\/+/, "")}`; };
+const isValidUrl = (value: string) => { try { const url = new URL(normalizeUrl(value)); return url.hostname.includes(".") && url.hostname.length > 3; } catch { return false; } };
+const hostOf = (url?: string) => { try { return new URL(url ?? "").hostname.replace(/^www\./, ""); } catch { return "Link"; } };
+
+function ResourcesPanel({ resources, onChange }: { resources: TaskResource[]; onChange: (resources: TaskResource[]) => void }) {
+  const [showLink, setShowLink] = useState(false);
+  const [linkTitle, setLinkTitle] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const invalid = linkUrl.trim().length > 0 && !isValidUrl(linkUrl);
+
+  const addFiles = (files: FileList | null) => {
+    if (!files?.length) return;
+    const added: TaskResource[] = Array.from(files).map((file, index) => ({
+      id: Date.now() + index, kind: "file", title: file.name, ext: extOf(file.name), size: file.size, url: URL.createObjectURL(file),
+    }));
+    onChange([...resources, ...added]);
+  };
+
+  const saveLink = () => {
+    if (!isValidUrl(linkUrl)) return;
+    const url = normalizeUrl(linkUrl);
+    onChange([...resources, { id: Date.now(), kind: "link", title: linkTitle.trim() || hostOf(url), url }]);
+    setLinkTitle(""); setLinkUrl(""); setShowLink(false);
+  };
+
+  const remove = (id: number) => onChange(resources.filter(item => item.id !== id));
+  const field = "w-full min-w-0 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring";
+
+  return <section className="academic-card p-5">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div><h2 className="text-base font-bold">Resources</h2><p className="mt-1 text-xs text-muted-foreground">Files, datasets, and reference links for this task.</p></div>
+      <div className="flex gap-2">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-muted px-3 py-2 text-xs font-semibold text-foreground"><Paperclip className="size-3.5 text-academic" />Upload file<input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" className="sr-only" onChange={e => { addFiles(e.target.files); e.target.value = ""; }} /></label>
+        <Button variant="outline" size="sm" onClick={() => setShowLink(value => !value)}><Link2 /> Add link</Button>
+      </div>
+    </div>
+
+    {showLink && <div className="mt-4 grid gap-3 rounded-xl border border-dashed border-input p-4 sm:grid-cols-2">
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Title</span><input autoFocus value={linkTitle} onChange={e => setLinkTitle(e.target.value)} placeholder="Case Study Dataset" className={field} /></label>
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">URL</span><input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="drive.google.com/…" className={field} /></label>
+      {invalid && <p className="text-xs font-medium text-destructive sm:col-span-2">Enter a valid address, e.g. drive.google.com/file/123</p>}
+      <div className="flex gap-2 sm:col-span-2"><Button variant="academic" size="sm" onClick={saveLink}><Save /> Save link</Button><Button variant="ghost" size="sm" onClick={() => setShowLink(false)}>Cancel</Button></div>
+    </div>}
+
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {resources.length ? resources.map(item => <article key={item.id} className="rounded-xl border border-border bg-muted p-3">
+        <div className="flex items-start gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-academic">{item.kind === "file" ? <FileText className="size-5" /> : <Link2 className="size-5" />}</div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{item.title}</p>
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-[10px] font-semibold text-muted-foreground"><span className="rounded-full bg-background px-2 py-0.5">{item.kind === "file" ? item.ext ?? extOf(item.title) : "Link"}</span>{item.kind === "file" ? formatSize(item.size) : hostOf(item.url)}</p>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          {item.kind === "file"
+            ? <a href={item.url ?? "#"} download={item.title} className="inline-flex items-center gap-1.5 rounded-lg bg-background px-2.5 py-1.5 text-xs font-semibold text-academic"><Download className="size-3.5" />Download</a>
+            : <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-background px-2.5 py-1.5 text-xs font-semibold text-academic"><ExternalLink className="size-3.5" />Open link</a>}
+          <button onClick={() => remove(item.id)} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground"><Trash2 className="size-3.5" />Remove</button>
+        </div>
+      </article>) : <p className="text-sm text-muted-foreground sm:col-span-2">No resources yet. Upload assignment files or attach reference links.</p>}
+    </div>
+  </section>;
+}
+
 function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void; onCancel: () => void }) {
   const [title, setTitle] = useState("");
   const [courseIndex, setCourseIndex] = useState(0);
