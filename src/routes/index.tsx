@@ -40,7 +40,50 @@ const schedule = [
   { day: "Fri", date: "18", items: [{ time: "10:00", title: "Midterm preparation", room: "FEB Library", kind: "Study" }] },
 ];
 
+type EventType = "Lecture" | "Assistant" | "Deadline" | "Study";
+type CalendarEvent = { id: number; type: EventType; day: string; title: string; start: string; end?: string; location?: string; course?: string; person?: string };
+
+const weekDays = [
+  { key: "Mon", label: "Monday", date: "14" },
+  { key: "Tue", label: "Tuesday", date: "15" },
+  { key: "Wed", label: "Wednesday", date: "16" },
+  { key: "Thu", label: "Thursday", date: "17" },
+  { key: "Fri", label: "Friday", date: "18" },
+  { key: "Sat", label: "Saturday", date: "19" },
+  { key: "Sun", label: "Sunday", date: "20" },
+];
+
+const today = "Wed";
+
+const calendarEvents: CalendarEvent[] = [
+  { id: 1, type: "Lecture", day: "Mon", title: "Pengambilan Keputusan Manajerial", start: "08:00", end: "10:30", location: "Room A.306", course: "Pengambilan Keputusan", person: "Dr. Imam Salehudin" },
+  { id: 2, type: "Assistant", day: "Mon", title: "Methods lab", start: "15:00", end: "16:00", location: "Lab Komputer", course: "Metode Riset Bisnis", person: "Alya Safira" },
+  { id: 3, type: "Lecture", day: "Tue", title: "Akuntansi Manajemen untuk Bisnis", start: "08:00", end: "10:30", location: "Room A303", course: "Akuntansi Manajemen", person: "Rahfiani Khairurzka" },
+  { id: 4, type: "Lecture", day: "Tue", title: "Manajemen Produk dan Harga", start: "11:00", end: "13:30", location: "Room A.212", course: "Manajemen Produk", person: "Dr. Karto Adiwijaya" },
+  { id: 5, type: "Study", day: "Tue", title: "Review pricing strategy", start: "16:00", end: "17:30", location: "FEB Library", course: "Manajemen Produk" },
+  { id: 6, type: "Lecture", day: "Wed", title: "Bisnis Internasional", start: "08:00", end: "10:30", location: "Room B.111", course: "Bisnis Internasional", person: "Aswin Dewanto Hadisumarto" },
+  { id: 7, type: "Assistant", day: "Wed", title: "Problem Solving Session", start: "13:00", end: "14:30", location: "Online", course: "Akuntansi Manajemen", person: "Nadia Putri" },
+  { id: 8, type: "Study", day: "Wed", title: "Review Chapter 5", start: "19:00", end: "21:00", location: "Kos · Deep work", course: "Akuntansi Manajemen" },
+  { id: 9, type: "Lecture", day: "Thu", title: "Perencanaan Pemasaran", start: "08:00", end: "10:30", location: "Room B.110", course: "Perencanaan Pemasaran", person: "Dr. Daniel Tumpal" },
+  { id: 10, type: "Assistant", day: "Thu", title: "Case clinic", start: "13:00", end: "14:00", location: "Online", course: "Manajemen Produk", person: "Sri Daryanti" },
+  { id: 11, type: "Lecture", day: "Thu", title: "Metode Riset Bisnis", start: "14:00", end: "16:30", location: "Room B.101", course: "Metode Riset Bisnis", person: "Lenny Suardi" },
+  { id: 12, type: "Study", day: "Thu", title: "Literature matrix drafting", start: "19:00", end: "21:00", location: "FEB Library", course: "Metode Riset Bisnis" },
+  { id: 13, type: "Assistant", day: "Fri", title: "Reading discussion", start: "14:00", end: "15:00", location: "Online", course: "Bisnis Internasional", person: "Fikri Ramadhan" },
+  { id: 14, type: "Deadline", day: "Fri", title: "Pricing Strategy Analysis", start: "23:59", location: "SCELE upload", course: "Manajemen Produk dan Harga" },
+  { id: 15, type: "Study", day: "Sat", title: "Midterm preparation block", start: "10:00", end: "12:00", location: "FEB Library", course: "All courses" },
+  { id: 16, type: "Deadline", day: "Sun", title: "Cost Behavior Worksheet", start: "23:59", location: "SCELE upload", course: "Akuntansi Manajemen" },
+  { id: 17, type: "Study", day: "Sun", title: "Weekly review & planning", start: "16:00", end: "17:00", location: "Personal", course: "Semester planning" },
+];
+
+const eventStyles: Record<EventType, { bar: string; dot: string; chip: string; label: string; icon: typeof Clock3 }> = {
+  Lecture: { bar: "bg-primary", dot: "bg-primary", chip: "bg-primary/20 text-academic", label: "Lecture", icon: GraduationCap },
+  Assistant: { bar: "bg-academic", dot: "bg-academic", chip: "bg-academic/12 text-academic", label: "Assistant session", icon: UserRound },
+  Deadline: { bar: "bg-destructive", dot: "bg-destructive", chip: "bg-destructive/12 text-destructive", label: "Deadline", icon: FileText },
+  Study: { bar: "bg-success", dot: "bg-success", chip: "bg-success/12 text-success", label: "Personal study", icon: BookOpen },
+};
+
 const initialTasks: Task[] = [
+
   { id: 1, title: "Marketing Analysis", course: "Perencanaan Pemasaran", due: "20 Sep", priority: "High", done: false },
   { id: 2, title: "Cost behavior worksheet", course: "Akuntansi Manajemen", due: "22 Sep", priority: "Medium", done: false },
   { id: 3, title: "Read chapter 4", course: "Bisnis Internasional", due: "Today", priority: "Medium", done: false },
@@ -193,13 +236,143 @@ function CourseTaskRow({ task, onToggle }: { task: CourseTask; onToggle: () => v
 function SchedulePanel({ events }: { events: CourseEvent[] }) { return <div><div className="mb-4"><h2 className="text-base font-bold">Course schedule</h2><p className="mt-1 text-xs text-muted-foreground">Lectures, assistant sessions, and academic milestones.</p></div><div className="academic-card divide-y divide-border">{events.map(event => <article key={`${event.type}-${event.title}`} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 p-4 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:items-center"><div><p className="font-display text-sm font-bold text-academic">{event.time.split(" – ")[0]}</p><p className="mt-1 text-[10px] text-muted-foreground">{event.day}</p></div><div className="min-w-0 border-l-2 border-primary pl-4"><span className="rounded-full bg-accent px-2 py-1 text-[10px] font-semibold text-academic">{event.type}</span><h3 className="mt-2 text-sm font-semibold">{event.title}</h3><p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><MapPin className="size-3.5" />{event.room}</p></div><div className="col-start-2 text-xs text-muted-foreground sm:col-start-auto sm:text-right"><p>{event.date ?? "Every week"}</p><p className="mt-1">{event.time}</p></div></article>)}</div></div>; }
 
 function CalendarView() {
-  const [selectedDay, setSelectedDay] = useState("Wed");
-  const selected = schedule.find(day => day.day === selectedDay);
-  if (!selected) return null;
-  return <div><MobileTop eyebrow="September 2026" title="Academic Calendar" action={<Button variant="outline" size="icon" aria-label="Calendar options"><MoreHorizontal /></Button>} /><div className="mb-7 hidden items-end justify-between md:flex"><div><p className="text-sm text-academic">September 2026</p><h1 className="mt-1 text-3xl font-bold">Academic Calendar</h1></div><div className="flex gap-2"><span className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-academic">Week</span><span className="rounded-full bg-muted px-3 py-1.5 text-xs text-muted-foreground">Month</span></div></div><div className="mb-5 grid grid-cols-5 gap-2">{schedule.map(day => <button key={day.day} onClick={() => setSelectedDay(day.day)} className={`rounded-xl py-3 text-center transition-colors ${selectedDay === day.day ? "bg-academic text-academic-foreground shadow-md" : "bg-surface text-muted-foreground"}`}><span className="block text-[10px] font-semibold">{day.day}</span><span className="mt-1 block font-display text-lg font-bold">{day.date}</span><span className={`mx-auto mt-1 block size-1.5 rounded-full ${day.items.length ? "bg-primary" : "bg-transparent"}`} /></button>)}</div><div className="md:hidden"><p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">{selected.day}, {selected.date} September</p><div className="space-y-3">{selected.items.map(item => <ScheduleCard key={item.time + item.title} item={item} />)}</div></div><div className="hidden overflow-hidden rounded-2xl border border-border bg-surface md:grid md:grid-cols-5">{schedule.map(day => <div key={day.day} className="min-h-[520px] border-r border-border p-3 last:border-r-0"><div className="mb-4 text-center"><p className="text-xs text-muted-foreground">{day.day}</p><p className="font-display text-lg font-bold">{day.date}</p></div><div className="space-y-3">{day.items.map(item => <ScheduleCard key={item.time + item.title} item={item} compact />)}</div></div>)}</div><div className="mt-6 flex flex-wrap gap-4 text-xs text-muted-foreground"><Legend color="bg-primary" label="Lecture" /><Legend color="bg-academic" label="Assistant" /><Legend color="bg-success" label="Personal study" /></div></div>;
+  const [selectedDay, setSelectedDay] = useState(today);
+  const [filter, setFilter] = useState<"All" | EventType>("All");
+
+  const byDay = useMemo(() => {
+    const map: Record<string, CalendarEvent[]> = {};
+    for (const day of weekDays) {
+      map[day.key] = calendarEvents
+        .filter(event => event.day === day.key && (filter === "All" || event.type === filter))
+        .sort((a, b) => a.start.localeCompare(b.start));
+    }
+    return map;
+  }, [filter]);
+
+  const selected = weekDays.find(day => day.key === selectedDay) ?? weekDays[0]!;
+  const todayLabel = weekDays.find(day => day.key === today);
+  const todayEvents = useMemo(() => calendarEvents.filter(e => e.day === today).sort((a, b) => a.start.localeCompare(b.start)), []);
+  const upcomingDeadlines = useMemo(() => calendarEvents.filter(e => e.type === "Deadline").sort((a, b) => a.day.localeCompare(b.day)), []);
+  const filters: ("All" | EventType)[] = ["All", "Lecture", "Assistant", "Deadline", "Study"];
+
+  return <div>
+    <MobileTop eyebrow="September 2026" title="Academic Calendar" action={<Button variant="outline" size="icon" aria-label="Calendar options"><MoreHorizontal /></Button>} />
+    <div className="mb-7 hidden items-end justify-between md:flex">
+      <div><p className="text-sm text-academic">September 2026 · Week 3</p><h1 className="mt-1 text-3xl font-bold">Academic Calendar</h1></div>
+      <div className="flex gap-2"><span className="rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-academic">Week</span><span className="rounded-full bg-muted px-3 py-1.5 text-xs text-muted-foreground">Month</span></div>
+    </div>
+
+    <section className="mb-7">
+      <SectionHeader title="Today’s timeline" action={<span className="text-xs font-semibold text-academic">{todayLabel?.label}, {todayLabel?.date} September</span>} />
+      <div className="academic-card p-4 md:p-5">
+        {todayEvents.length ? <ol className="relative space-y-4 border-l border-border pl-5">
+          {todayEvents.map(event => {
+            const style = eventStyles[event.type];
+            return <li key={event.id} className="relative">
+              <span className={`absolute -left-[26px] top-1.5 size-2.5 rounded-full ring-4 ring-surface ${style.dot}`} />
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3">
+                <span className="font-display text-sm font-bold text-academic">{event.start}</span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold">{event.title}</p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{style.label}{event.location ? ` · ${event.location}` : ""}</p>
+                </div>
+              </div>
+            </li>;
+          })}
+        </ol> : <p className="text-sm text-muted-foreground">No academic activity today — a good window for deep work.</p>}
+        <div className="mt-4 rounded-xl bg-muted p-3 text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">Prepare: </span>
+          Chapter 5 recap before the problem-solving session, and bring the cost behavior worksheet draft.
+        </div>
+      </div>
+    </section>
+
+    <div className="mb-4 -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      {filters.map(value => <button key={value} onClick={() => setFilter(value)} className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filter === value ? "bg-academic text-academic-foreground" : "bg-muted text-muted-foreground"}`}>{value}</button>)}
+    </div>
+
+    <div className="mb-5 grid grid-cols-7 gap-1.5 sm:gap-2">
+      {weekDays.map(day => {
+        const count = byDay[day.key]?.length ?? 0;
+        const active = selectedDay === day.key;
+        return <button key={day.key} onClick={() => setSelectedDay(day.key)} className={`rounded-xl py-2.5 text-center transition-colors ${active ? "bg-academic text-academic-foreground shadow-md" : "bg-surface text-muted-foreground"} ${day.key === today && !active ? "ring-1 ring-academic/40" : ""}`}>
+          <span className="block text-[10px] font-semibold">{day.key}</span>
+          <span className="mt-1 block font-display text-base font-bold sm:text-lg">{day.date}</span>
+          <span className={`mx-auto mt-1 block size-1.5 rounded-full ${count ? (active ? "bg-primary" : "bg-academic") : "bg-transparent"}`} />
+        </button>;
+      })}
+    </div>
+
+    <div className="md:hidden">
+      <p className="mb-3 text-xs font-semibold uppercase text-muted-foreground">{selected.label}, {selected.date} September</p>
+      <div className="space-y-3">
+        {byDay[selected.key]?.length ? byDay[selected.key]!.map(event => <EventCard key={event.id} event={event} />) : <div className="academic-card p-6 text-center text-sm text-muted-foreground">Nothing scheduled for this day.</div>}
+      </div>
+    </div>
+
+    <div className="hidden gap-3 md:grid md:grid-cols-7">
+      {weekDays.map(day => <div key={day.key} className={`min-h-[420px] rounded-2xl border p-2.5 ${day.key === today ? "border-academic/40 bg-accent/40" : "border-border bg-surface"}`}>
+        <div className="mb-3 text-center">
+          <p className="text-[11px] text-muted-foreground">{day.key}</p>
+          <p className={`font-display text-lg font-bold ${day.key === today ? "text-academic" : ""}`}>{day.date}</p>
+        </div>
+        <div className="space-y-2.5">{byDay[day.key]?.map(event => <EventCard key={event.id} event={event} compact />)}</div>
+      </div>)}
+    </div>
+
+    <section className="mt-8">
+      <SectionHeader title="Coming up next" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {upcomingDeadlines.map(event => {
+          const day = weekDays.find(d => d.key === event.day);
+          return <article key={event.id} className="academic-card grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 p-4">
+            <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-destructive/10 text-destructive">
+              <span className="font-display text-base font-bold leading-none">{day?.date}</span>
+              <span className="text-[9px] font-semibold uppercase">Sep</span>
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold">{event.title}</p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">{event.course} · due {event.start}</p>
+            </div>
+          </article>;
+        })}
+      </div>
+    </section>
+
+    <div className="mt-6 flex flex-wrap gap-4 text-xs text-muted-foreground">
+      <Legend color="bg-primary" label="Lecture" />
+      <Legend color="bg-academic" label="Assistant session" />
+      <Legend color="bg-destructive" label="Deadline" />
+      <Legend color="bg-success" label="Personal study" />
+    </div>
+  </div>;
 }
-function ScheduleCard({ item, compact = false }: { item: { time: string; title: string; room: string; kind: string }; compact?: boolean }) { const color = item.kind === "Lecture" ? "border-primary" : item.kind === "Assistant" ? "border-academic" : "border-success"; return <article className={`academic-card border-l-4 ${color} ${compact ? "p-3" : "p-4"}`}><div className="flex items-center justify-between gap-2"><span className="text-xs font-bold text-academic">{item.time}</span><span className="text-[10px] text-muted-foreground">{item.kind}</span></div><h3 className={`mt-2 font-bold leading-5 ${compact ? "text-xs" : "text-sm"}`}>{item.title}</h3><p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="size-3" />{item.room}</p></article>; }
+
+function EventCard({ event, compact = false }: { event: CalendarEvent; compact?: boolean }) {
+  const style = eventStyles[event.type];
+  const Icon = style.icon;
+  return <article className="academic-card overflow-hidden">
+    <div className="flex">
+      <div className={`w-1.5 shrink-0 ${style.bar}`} />
+      <div className={`min-w-0 flex-1 ${compact ? "p-2.5" : "p-4"}`}>
+        <div className="flex items-center justify-between gap-2">
+          <span className={`font-display font-bold text-academic ${compact ? "text-[11px]" : "text-xs"}`}>{event.start}{event.end ? ` – ${event.end}` : ""}</span>
+          {!compact && <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${style.chip}`}><Icon className="size-3" />{style.label}</span>}
+        </div>
+        {compact && <span className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${style.chip}`}>{style.label}</span>}
+        <h3 className={`mt-2 font-bold leading-5 ${compact ? "text-[11px]" : "text-sm"}`}>{event.title}</h3>
+        <div className={`mt-2 space-y-1 text-muted-foreground ${compact ? "text-[10px]" : "text-xs"}`}>
+          {event.location && <p className="flex items-center gap-1.5 truncate"><MapPin className="size-3 shrink-0" />{event.location}</p>}
+          {event.person && <p className="flex items-center gap-1.5 truncate"><UserRound className="size-3 shrink-0" />{event.person}</p>}
+          {event.course && <p className="flex items-center gap-1.5 truncate"><BookOpen className="size-3 shrink-0" />{event.course}</p>}
+        </div>
+      </div>
+    </div>
+  </article>;
+}
+
 function Legend({ color, label }: { color: string; label: string }) { return <span className="flex items-center gap-2"><span className={`size-2 rounded-full ${color}`} />{label}</span>; }
+
 
 function TasksView({ tasks, toggleTask, showAdd, setShowAdd, newTask, setNewTask, addTask }: { tasks: Task[]; toggleTask: (id: number) => void; showAdd: boolean; setShowAdd: (value: boolean) => void; newTask: string; setNewTask: (value: string) => void; addTask: () => void }) {
   const [tab, setTab] = useState("today");
