@@ -10,7 +10,14 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type View = "home" | "courses" | "calendar" | "tasks" | "library";
-type Task = { id: number; title: string; course: string; due: string; priority: "High" | "Medium"; done: boolean };
+type TaskCategory = "Accounting" | "Marketing" | "Entrepreneurship" | "Research";
+type TaskStatus = "Not started" | "In progress" | "Completed";
+type ChecklistItem = { id: number; label: string; done: boolean };
+type Task = {
+  id: number; title: string; course: string; courseCode?: string; category: TaskCategory;
+  due: string; dueDate: string; priority: "High" | "Medium" | "Low"; status: TaskStatus; done: boolean;
+  description: string; attachments: string[]; checklist: ChecklistItem[];
+};
 type CourseTask = { id: number; title: string; due: string; priority: "High" | "Medium"; status: "Not started" | "In progress" | "Completed" };
 type CourseNote = { id: number; title: string; topic: string; body: string; attachment?: string };
 type CourseMaterial = { id: number; title: string; type: "Textbook" | "PDF" | "Slides" | "External link" | "Article"; description: string; attachment: string };
@@ -82,12 +89,82 @@ const eventStyles: Record<EventType, { bar: string; dot: string; chip: string; l
   Study: { bar: "bg-success", dot: "bg-success", chip: "bg-success/12 text-success", label: "Personal study", icon: BookOpen },
 };
 
-const initialTasks: Task[] = [
+const taskCategories: TaskCategory[] = ["Accounting", "Marketing", "Entrepreneurship", "Research"];
 
-  { id: 1, title: "Marketing Analysis", course: "Perencanaan Pemasaran", due: "20 Sep", priority: "High", done: false },
-  { id: 2, title: "Cost behavior worksheet", course: "Akuntansi Manajemen", due: "22 Sep", priority: "Medium", done: false },
-  { id: 3, title: "Read chapter 4", course: "Bisnis Internasional", due: "Today", priority: "Medium", done: false },
-  { id: 4, title: "Research question draft", course: "Metode Riset Bisnis", due: "15 Sep", priority: "High", done: true },
+const courseOptions: { course: string; courseCode: string; category: TaskCategory }[] = [
+  { course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting" },
+  { course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing" },
+  { course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship" },
+  { course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research" },
+];
+
+const priorityStyles: Record<Task["priority"], string> = {
+  High: "bg-destructive/12 text-destructive",
+  Medium: "bg-primary/25 text-foreground",
+  Low: "bg-success/12 text-success",
+};
+
+const statusStyles: Record<TaskStatus, string> = {
+  "Not started": "bg-muted text-muted-foreground",
+  "In progress": "bg-academic/12 text-academic",
+  Completed: "bg-success/12 text-success",
+};
+
+const initialTasks: Task[] = [
+  {
+    id: 1, title: "Cost Behavior Worksheet", course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting",
+    due: "Today", dueDate: "16 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
+    description: "Separate fixed, variable, and mixed costs from the case data, then build the contribution margin model for the Week 3 discussion.",
+    attachments: ["cost-model.xlsx", "Week-3-brief.pdf"],
+    checklist: [
+      { id: 1, label: "Classify all cost items", done: true },
+      { id: 2, label: "Build contribution margin table", done: true },
+      { id: 3, label: "Write interpretation paragraph", done: false },
+      { id: 4, label: "Submit to EMAS", done: false },
+    ],
+  },
+  {
+    id: 2, title: "Chapter 5 Reading Recap", course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship",
+    due: "Today", dueDate: "16 Sep 2026 · 19:00", priority: "Medium", status: "Not started", done: false,
+    description: "Read the market entry chapter and summarise control, commitment, and risk for each entry mode before tomorrow's discussion.",
+    attachments: ["Reading guide.pdf"],
+    checklist: [
+      { id: 1, label: "Read pages 120–148", done: false },
+      { id: 2, label: "Write one-page summary", done: false },
+    ],
+  },
+  {
+    id: 3, title: "Pricing Strategy Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
+    due: "18 Sep", dueDate: "18 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
+    description: "Analyse the pricing ladder of the assigned brand and justify a value-based pricing recommendation.",
+    attachments: ["pricing-case.pdf"],
+    checklist: [
+      { id: 1, label: "Collect competitor prices", done: true },
+      { id: 2, label: "Estimate demand elasticity", done: false },
+      { id: 3, label: "Draft recommendation slide", done: false },
+    ],
+  },
+  {
+    id: 4, title: "Marketing Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
+    due: "20 Sep", dueDate: "20 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
+    description: "Market segmentation and positioning analysis for the mid-semester product report.",
+    attachments: [],
+    checklist: [{ id: 1, label: "Segment the market", done: false }, { id: 2, label: "Map positioning", done: false }],
+  },
+  {
+    id: 5, title: "Literature Matrix", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
+    due: "28 Sep", dueDate: "28 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
+    description: "Compile ten journal articles into a comparison matrix: research question, method, sample, and findings.",
+    attachments: ["matrix-template.xlsx"],
+    checklist: [{ id: 1, label: "Select 10 articles", done: false }, { id: 2, label: "Fill the matrix", done: false }],
+  },
+  {
+    id: 6, title: "Research Question Revision", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
+    due: "15 Sep", dueDate: "15 Sep 2026 · 23:59", priority: "High", status: "Completed", done: true,
+    description: "Revise the research question based on the assistant's feedback and narrow the scope.",
+    attachments: [],
+    checklist: [{ id: 1, label: "Apply feedback", done: true }, { id: 2, label: "Send to assistant", done: true }],
+  },
 ];
 
 export const Route = createFileRoute("/")({
@@ -105,17 +182,14 @@ export const Route = createFileRoute("/")({
 function AcademicApp() {
   const [view, setView] = useState<View>("home");
   const [workspace, setWorkspace] = useState<Course | null>(null);
-  const [tasks, setTasks] = useState(initialTasks);
-  const [showAdd, setShowAdd] = useState(false);
-  const [newTask, setNewTask] = useState("");
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const navigate = (next: View) => { setWorkspace(null); setView(next); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const toggleTask = (id: number) => setTasks((items) => items.map((task) => task.id === id ? { ...task, done: !task.done } : task));
-  const addTask = () => {
-    if (!newTask.trim()) return;
-    setTasks((items) => [...items, { id: Date.now(), title: newTask.trim(), course: "Personal study", due: "Today", priority: "Medium", done: false }]);
-    setNewTask(""); setShowAdd(false); setView("tasks");
-  };
+  const toggleTask = (id: number) => setTasks((items) => items.map((task) => task.id === id
+    ? { ...task, done: !task.done, status: (!task.done ? "Completed" : "In progress") as TaskStatus }
+    : task));
+  const updateTask = (id: number, patch: Partial<Task>) => setTasks((items) => items.map((task) => task.id === id ? { ...task, ...patch } : task));
+  const addTask = (task: Task) => setTasks((items) => [task, ...items]);
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground md:pb-8">
@@ -126,7 +200,7 @@ function AcademicApp() {
             {view === "home" && <HomeView tasks={tasks} toggleTask={toggleTask} navigate={navigate} />}
             {view === "courses" && <CoursesView onOpen={setWorkspace} />}
             {view === "calendar" && <CalendarView />}
-            {view === "tasks" && <TasksView tasks={tasks} toggleTask={toggleTask} showAdd={showAdd} setShowAdd={setShowAdd} newTask={newTask} setNewTask={setNewTask} addTask={addTask} />}
+            {view === "tasks" && <TasksView tasks={tasks} toggleTask={toggleTask} updateTask={updateTask} addTask={addTask} navigate={navigate} />}
             {view === "library" && <LibraryView />}
           </div>
         )}
@@ -374,13 +448,184 @@ function EventCard({ event, compact = false }: { event: CalendarEvent; compact?:
 function Legend({ color, label }: { color: string; label: string }) { return <span className="flex items-center gap-2"><span className={`size-2 rounded-full ${color}`} />{label}</span>; }
 
 
-function TasksView({ tasks, toggleTask, showAdd, setShowAdd, newTask, setNewTask, addTask }: { tasks: Task[]; toggleTask: (id: number) => void; showAdd: boolean; setShowAdd: (value: boolean) => void; newTask: string; setNewTask: (value: string) => void; addTask: () => void }) {
-  const [tab, setTab] = useState("today");
-  const filtered = useMemo(() => tab === "completed" ? tasks.filter(t => t.done) : tab === "today" ? tasks.filter(t => !t.done && t.due === "Today") : tasks.filter(t => !t.done), [tasks, tab]);
-  return <div><MobileTop eyebrow="Academic planner" title="Tasks" action={<Button variant="yellow" size="icon" onClick={() => setShowAdd(true)} aria-label="Create assignment"><Plus /></Button>} /><div className="mb-7 hidden items-end justify-between md:flex"><div><p className="text-sm text-academic">Academic planner</p><h1 className="mt-1 text-3xl font-bold">Tasks</h1></div><Button variant="yellow" onClick={() => setShowAdd(true)}><Plus /> Create assignment</Button></div>{showAdd && <div className="academic-card mb-5 p-4"><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"><input autoFocus value={newTask} onChange={e => setNewTask(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} placeholder="Assignment title" className="min-w-0 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring" /><Button variant="academic" onClick={addTask}><Check /> Add</Button></div><button onClick={() => setShowAdd(false)} className="mt-3 flex items-center gap-1 text-xs text-muted-foreground"><X className="size-3" />Cancel</button></div>}<div className="mb-5 flex gap-2 border-b border-border">{["today", "upcoming", "completed"].map(value => <button key={value} onClick={() => setTab(value)} className={`border-b-2 px-3 pb-3 text-sm font-semibold capitalize ${tab === value ? "border-academic text-academic" : "border-transparent text-muted-foreground"}`}>{value}</button>)}</div><div className="space-y-2">{filtered.length ? filtered.map(task => <TaskRow key={task.id} task={task} toggleTask={toggleTask} />) : <div className="py-16 text-center"><CheckCircle2 className="mx-auto size-9 text-success" /><h2 className="mt-4 text-base font-bold">All clear</h2><p className="mt-1 text-sm text-muted-foreground">Nothing needs your attention here.</p></div>}</div></div>;
+function TasksView({ tasks, toggleTask, updateTask, addTask, navigate }: { tasks: Task[]; toggleTask: (id: number) => void; updateTask: (id: number, patch: Partial<Task>) => void; addTask: (task: Task) => void; navigate: (view: View) => void }) {
+  const [filter, setFilter] = useState<"All" | TaskCategory>("All");
+  const [openId, setOpenId] = useState<number | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+
+  const scoped = useMemo(() => filter === "All" ? tasks : tasks.filter(task => task.category === filter), [tasks, filter]);
+  const active = scoped.filter(task => !task.done);
+  const today = active.filter(task => task.due === "Today");
+  const upcoming = active.filter(task => task.due !== "Today");
+  const completed = scoped.filter(task => task.done);
+  const dueThisWeek = active.filter(task => ["Today", "18 Sep", "20 Sep"].includes(task.due));
+  const openTask = tasks.find(task => task.id === openId) ?? null;
+
+  if (openTask) return <TaskDetail task={openTask} onBack={() => setOpenId(null)} updateTask={updateTask} toggleTask={toggleTask} navigate={navigate} />;
+
+  return <div>
+    <MobileTop eyebrow="Semester Gasal 2026/2027" title="Tasks" action={<Button variant="yellow" size="icon" onClick={() => setShowAdd(true)} aria-label="Create assignment"><Plus /></Button>} />
+    <div className="mb-7 hidden items-end justify-between md:flex"><div><p className="text-sm text-academic">Semester Gasal 2026/2027</p><h1 className="mt-1 text-3xl font-bold">Tasks</h1></div><Button variant="yellow" onClick={() => setShowAdd(true)}><Plus /> Create assignment</Button></div>
+
+    <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
+      <SummaryStat label="Active tasks" value={active.length} tone="text-academic" />
+      <SummaryStat label="Due this week" value={dueThisWeek.length} tone="text-destructive" />
+      <SummaryStat label="Completed" value={completed.length} tone="text-success" />
+    </div>
+
+    <div className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+      {(["All", ...taskCategories] as const).map(value => <button key={value} onClick={() => setFilter(value)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${filter === value ? "bg-academic text-academic-foreground" : "bg-muted text-muted-foreground"}`}>{value}</button>)}
+    </div>
+
+    {showAdd && <CreateTaskForm onCancel={() => setShowAdd(false)} onCreate={task => { addTask(task); setShowAdd(false); }} />}
+
+    <section className="mb-8">
+      <SectionHeader title="Today" action={<span className="text-xs font-semibold text-muted-foreground">{today.length} needs attention</span>} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {today.length ? today.map(task => <TaskCard key={task.id} task={task} toggleTask={toggleTask} onOpen={() => setOpenId(task.id)} />)
+          : <div className="academic-card p-6 text-center sm:col-span-2"><CheckCircle2 className="mx-auto size-8 text-success" /><p className="mt-3 text-sm font-semibold">Nothing due today</p><p className="mt-1 text-xs text-muted-foreground">Use the free time to get ahead on upcoming work.</p></div>}
+      </div>
+    </section>
+
+    <section className="mb-8">
+      <SectionHeader title="Upcoming" />
+      {upcoming.length ? <div className="academic-card overflow-hidden">
+        {upcoming.map((task, index) => <button key={task.id} onClick={() => setOpenId(task.id)} className={`grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 p-4 text-left ${index ? "border-t border-border" : ""}`}>
+          <div className="w-14 shrink-0 text-center"><p className="font-display text-lg font-bold text-academic">{task.due.split(" ")[0]}</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">{task.due.split(" ")[1] ?? ""}</p></div>
+          <div className="min-w-0 border-l border-border pl-3"><p className="truncate text-sm font-bold">{task.title}</p><p className="mt-1 truncate text-xs text-muted-foreground">{task.course}</p></div>
+          <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[task.priority]}`}>{task.priority}</span>
+        </button>)}
+      </div> : <div className="academic-card p-6 text-center text-sm text-muted-foreground">No upcoming work in this filter.</div>}
+    </section>
+
+    {completed.length > 0 && <section>
+      <SectionHeader title="Completed" />
+      <div className="academic-card divide-y divide-border">{completed.map(task => <button key={task.id} onClick={() => setOpenId(task.id)} className="flex w-full items-center gap-3 p-4 text-left"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-success text-academic-foreground"><Check className="size-3.5" /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-muted-foreground line-through">{task.title}</span><span className="mt-1 block truncate text-xs text-muted-foreground">{task.course}</span></span><ChevronRight className="size-4 text-muted-foreground" /></button>)}</div>
+    </section>}
+  </div>;
 }
 
-function TaskRow({ task, toggleTask }: { task: Task; toggleTask: (id: number) => void }) { return <article className="academic-card grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 p-4"><button onClick={() => toggleTask(task.id)} aria-label={task.done ? `Mark ${task.title} incomplete` : `Complete ${task.title}`} className={`grid size-6 shrink-0 place-items-center rounded-full border transition-colors ${task.done ? "border-success bg-success text-academic-foreground" : "border-input bg-background"}`}>{task.done && <Check className="size-3.5" />}</button><div className="min-w-0"><p className={`truncate text-sm font-semibold ${task.done ? "text-muted-foreground line-through" : ""}`}>{task.title}</p><p className="mt-1 truncate text-xs text-muted-foreground">{task.course}</p></div><div className="text-right"><p className={`text-xs font-semibold ${task.due === "Today" ? "text-destructive" : "text-academic"}`}>{task.due}</p><p className="mt-1 text-[10px] text-muted-foreground">{task.priority}</p></div></article>; }
+function SummaryStat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return <div className="academic-card p-4"><p className={`font-display text-2xl font-bold ${tone}`}>{value}</p><p className="mt-1 text-[11px] font-semibold text-muted-foreground">{label}</p></div>;
+}
+
+function TaskCard({ task, toggleTask, onOpen }: { task: Task; toggleTask: (id: number) => void; onOpen: () => void }) {
+  const progress = task.checklist.length ? Math.round((task.checklist.filter(item => item.done).length / task.checklist.length) * 100) : 0;
+  return <article className="academic-card overflow-hidden">
+    <div className="flex">
+      <div className={`w-1.5 shrink-0 ${task.priority === "High" ? "bg-destructive" : task.priority === "Medium" ? "bg-primary" : "bg-success"}`} />
+      <div className="min-w-0 flex-1 p-4">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+          <button onClick={() => toggleTask(task.id)} aria-label={`Complete ${task.title}`} className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full border border-input bg-background" />
+          <button onClick={onOpen} className="min-w-0 text-left">
+            <h3 className="truncate text-sm font-bold">{task.title}</h3>
+            <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground"><BookOpen className="size-3 shrink-0" />{task.course}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-semibold text-academic">Due {task.due}</span>
+              <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[task.priority]}`}>{task.priority} priority</span>
+              <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[task.status]}`}>{task.status}</span>
+            </div>
+            {task.checklist.length > 0 && <div className="mt-4 flex items-center gap-3"><Progress value={progress} className="h-2 flex-1" /><span className="text-[11px] font-bold text-academic">{progress}%</span></div>}
+          </button>
+        </div>
+      </div>
+    </div>
+  </article>;
+}
+
+function TaskDetail({ task, onBack, updateTask, toggleTask, navigate }: { task: Task; onBack: () => void; updateTask: (id: number, patch: Partial<Task>) => void; toggleTask: (id: number) => void; navigate: (view: View) => void }) {
+  const progress = task.checklist.length ? Math.round((task.checklist.filter(item => item.done).length / task.checklist.length) * 100) : 0;
+  const toggleItem = (itemId: number) => updateTask(task.id, { checklist: task.checklist.map(item => item.id === itemId ? { ...item, done: !item.done } : item) });
+  const setStatus = (status: TaskStatus) => updateTask(task.id, { status, done: status === "Completed" });
+
+  return <div>
+    <button onClick={onBack} className="mb-5 flex items-center gap-2 text-sm font-semibold text-academic"><ArrowLeft className="size-4" />Back to tasks</button>
+    <header className="academic-card mb-6 overflow-hidden">
+      <div className={`h-2 ${task.priority === "High" ? "bg-destructive" : task.priority === "Medium" ? "bg-primary" : "bg-success"}`} />
+      <div className="p-5 md:p-6">
+        <p className="text-xs font-semibold uppercase text-academic">{task.category}</p>
+        <h1 className="mt-2 text-xl font-bold md:text-2xl">{task.title}</h1>
+        <div className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
+          <span className="flex items-center gap-2"><BookOpen className="size-4 shrink-0 text-academic" />{task.course}{task.courseCode ? ` · ${task.courseCode}` : ""}</span>
+          <span className="flex items-center gap-2"><CalendarDays className="size-4 shrink-0 text-academic" />Due {task.dueDate}</span>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${priorityStyles[task.priority]}`}>{task.priority} priority</span>
+          <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusStyles[task.status]}`}>{task.status}</span>
+        </div>
+      </div>
+    </header>
+
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
+      <div className="space-y-6">
+        <section className="academic-card p-5"><h2 className="text-base font-bold">Description</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">{task.description}</p></section>
+
+        <section className="academic-card p-5">
+          <div className="flex items-center justify-between"><h2 className="text-base font-bold">Checklist</h2><span className="text-xs font-bold text-academic">{progress}%</span></div>
+          <Progress value={progress} className="mt-3 h-2" />
+          <div className="mt-4 space-y-2">{task.checklist.length ? task.checklist.map(item => <button key={item.id} onClick={() => toggleItem(item.id)} className="flex w-full items-center gap-3 rounded-xl bg-muted p-3 text-left"><span className={`grid size-5 shrink-0 place-items-center rounded-full border ${item.done ? "border-success bg-success text-academic-foreground" : "border-input bg-background"}`}>{item.done && <Check className="size-3" />}</span><span className={`min-w-0 flex-1 truncate text-sm ${item.done ? "text-muted-foreground line-through" : "font-medium"}`}>{item.label}</span></button>) : <p className="text-sm text-muted-foreground">No checklist items yet.</p>}</div>
+        </section>
+
+        <section className="academic-card p-5">
+          <h2 className="text-base font-bold">Attachments</h2>
+          <div className="mt-3 space-y-2">{task.attachments.length ? task.attachments.map(file => <div key={file} className="flex items-center gap-3 rounded-xl bg-muted p-3"><Paperclip className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate text-sm font-medium">{file}</span><Download className="size-4 text-muted-foreground" /></div>) : <p className="text-sm text-muted-foreground">No files attached.</p>}</div>
+        </section>
+      </div>
+
+      <div className="space-y-6">
+        <section className="academic-card p-5">
+          <h2 className="text-base font-bold">Status</h2>
+          <div className="mt-3 space-y-2">{(["Not started", "In progress", "Completed"] as TaskStatus[]).map(status => <button key={status} onClick={() => setStatus(status)} className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${task.status === status ? "bg-academic text-academic-foreground" : "bg-muted text-muted-foreground"}`}>{status}{task.status === status && <Check className="size-4" />}</button>)}</div>
+          <Button variant={task.done ? "outline" : "yellow"} className="mt-4 w-full" onClick={() => toggleTask(task.id)}>{task.done ? "Reopen task" : "Mark as completed"}</Button>
+        </section>
+
+        <section className="academic-card p-5">
+          <h2 className="text-base font-bold">Connected</h2>
+          <div className="mt-3 space-y-2">
+            <button onClick={() => navigate("courses")} className="flex w-full items-center gap-3 rounded-xl bg-muted p-3 text-left"><BookOpen className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate text-sm font-medium">Course workspace</span><ChevronRight className="size-4 text-muted-foreground" /></button>
+            <button onClick={() => navigate("calendar")} className="flex w-full items-center gap-3 rounded-xl bg-muted p-3 text-left"><CalendarDays className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate text-sm font-medium">See on calendar</span><ChevronRight className="size-4 text-muted-foreground" /></button>
+            <button onClick={() => navigate("library")} className="flex w-full items-center gap-3 rounded-xl bg-muted p-3 text-left"><Library className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate text-sm font-medium">Related materials</span><ChevronRight className="size-4 text-muted-foreground" /></button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>;
+}
+
+function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void; onCancel: () => void }) {
+  const [title, setTitle] = useState("");
+  const [courseIndex, setCourseIndex] = useState(0);
+  const [due, setDue] = useState("");
+  const [priority, setPriority] = useState<Task["priority"]>("Medium");
+  const [description, setDescription] = useState("");
+  const [attachment, setAttachment] = useState("");
+
+  const submit = () => {
+    if (!title.trim()) return;
+    const option = courseOptions[courseIndex]!;
+    const dueLabel = due.trim() || "Today";
+    onCreate({
+      id: Date.now(), title: title.trim(), course: option.course, courseCode: option.courseCode, category: option.category,
+      due: dueLabel, dueDate: `${dueLabel} 2026 · 23:59`, priority, status: "Not started", done: false,
+      description: description.trim() || "No description added yet.",
+      attachments: attachment.trim() ? [attachment.trim()] : [], checklist: [],
+    });
+  };
+
+  const field = "w-full min-w-0 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring";
+  return <section className="academic-card mb-6 p-5">
+    <h2 className="text-base font-bold">New academic task</h2>
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <label className="sm:col-span-2"><span className="mb-1 block text-xs font-semibold text-muted-foreground">Title</span><input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="Cost behavior worksheet" className={field} /></label>
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Course</span><select value={courseIndex} onChange={e => setCourseIndex(Number(e.target.value))} className={field}>{courseOptions.map((option, index) => <option key={option.course} value={index}>{option.course}</option>)}</select></label>
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Deadline</span><input value={due} onChange={e => setDue(e.target.value)} placeholder="22 Sep" className={field} /></label>
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Priority</span><select value={priority} onChange={e => setPriority(e.target.value as Task["priority"])} className={field}><option>High</option><option>Medium</option><option>Low</option></select></label>
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Attachment</span><input value={attachment} onChange={e => setAttachment(e.target.value)} placeholder="brief.pdf" className={field} /></label>
+      <label className="sm:col-span-2"><span className="mb-1 block text-xs font-semibold text-muted-foreground">Description</span><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="What needs to be prepared?" className={field} /></label>
+    </div>
+    <div className="mt-4 flex gap-2"><Button variant="academic" onClick={submit}><Check /> Save task</Button><Button variant="outline" onClick={onCancel}><X /> Cancel</Button></div>
+  </section>;
+}
 
 function LibraryView() {
   const [query, setQuery] = useState("");
