@@ -1,14 +1,22 @@
-# Welcome to your Lovable project
+# Feb Focus Import
+
+https://github.com/MrSmil25/feb-focus.git
+
+repo MrSmil25/feb-focus
+
+bisakah lu akses github? Hubungkan GitHub connector dan salin isi repo ke project ini
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://project-focus-companion.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/dc6d717e-464a-4f71-86e6-0899d5132292).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +28,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
