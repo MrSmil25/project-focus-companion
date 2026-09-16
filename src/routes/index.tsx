@@ -182,17 +182,14 @@ export const Route = createFileRoute("/")({
 function AcademicApp() {
   const [view, setView] = useState<View>("home");
   const [workspace, setWorkspace] = useState<Course | null>(null);
-  const [tasks, setTasks] = useState(initialTasks);
-  const [showAdd, setShowAdd] = useState(false);
-  const [newTask, setNewTask] = useState("");
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
 
   const navigate = (next: View) => { setWorkspace(null); setView(next); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const toggleTask = (id: number) => setTasks((items) => items.map((task) => task.id === id ? { ...task, done: !task.done } : task));
-  const addTask = () => {
-    if (!newTask.trim()) return;
-    setTasks((items) => [...items, { id: Date.now(), title: newTask.trim(), course: "Personal study", due: "Today", priority: "Medium", done: false }]);
-    setNewTask(""); setShowAdd(false); setView("tasks");
-  };
+  const toggleTask = (id: number) => setTasks((items) => items.map((task) => task.id === id
+    ? { ...task, done: !task.done, status: (!task.done ? "Completed" : "In progress") as TaskStatus }
+    : task));
+  const updateTask = (id: number, patch: Partial<Task>) => setTasks((items) => items.map((task) => task.id === id ? { ...task, ...patch } : task));
+  const addTask = (task: Task) => setTasks((items) => [task, ...items]);
 
   return (
     <div className="min-h-screen bg-background pb-24 text-foreground md:pb-8">
