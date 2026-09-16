@@ -673,7 +673,7 @@ function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState<Task["priority"]>("Medium");
   const [description, setDescription] = useState("");
-  const [attachment, setAttachment] = useState("");
+  const [resources, setResources] = useState<TaskResource[]>([]);
 
   const submit = () => {
     if (!title.trim()) return;
@@ -683,7 +683,7 @@ function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void
       id: Date.now(), title: title.trim(), course: option.course, courseCode: option.courseCode, category: option.category,
       due: dueLabel, dueDate: `${dueLabel} 2026 · 23:59`, priority, status: "Not started", done: false,
       description: description.trim() || "No description added yet.",
-      attachments: attachment.trim() ? [attachment.trim()] : [], checklist: [],
+      resources, checklist: [],
     });
   };
 
