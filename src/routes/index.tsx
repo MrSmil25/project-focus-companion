@@ -91,7 +91,7 @@ const eventStyles: Record<EventType, { bar: string; dot: string; chip: string; l
 
 const taskCategories: TaskCategory[] = ["Accounting", "Marketing", "Entrepreneurship", "Research"];
 
-const courseOptions: { course: string; courseCode?: string; category: TaskCategory }[] = [
+const courseOptions: { course: string; courseCode: string; category: TaskCategory }[] = [
   { course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting" },
   { course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing" },
   { course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship" },
