@@ -13,10 +13,11 @@ type View = "home" | "courses" | "calendar" | "tasks" | "library";
 type TaskCategory = "Accounting" | "Marketing" | "Entrepreneurship" | "Research";
 type TaskStatus = "Not started" | "In progress" | "Completed";
 type ChecklistItem = { id: number; label: string; done: boolean };
+type TaskResource = { id: number; kind: "file" | "link"; title: string; ext?: string; size?: number; url?: string };
 type Task = {
   id: number; title: string; course: string; courseCode?: string; category: TaskCategory;
   due: string; dueDate: string; priority: "High" | "Medium" | "Low"; status: TaskStatus; done: boolean;
-  description: string; attachments: string[]; checklist: ChecklistItem[];
+  description: string; resources: TaskResource[]; checklist: ChecklistItem[];
 };
 type CourseTask = { id: number; title: string; due: string; priority: "High" | "Medium"; status: "Not started" | "In progress" | "Completed" };
 type CourseNote = { id: number; title: string; topic: string; body: string; attachment?: string };
@@ -115,7 +116,11 @@ const initialTasks: Task[] = [
     id: 1, title: "Cost Behavior Worksheet", course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting",
     due: "Today", dueDate: "16 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
     description: "Separate fixed, variable, and mixed costs from the case data, then build the contribution margin model for the Week 3 discussion.",
-    attachments: ["cost-model.xlsx", "Week-3-brief.pdf"],
+    resources: [
+      { id: 1, kind: "file", title: "Cost Behavior Brief.pdf", ext: "PDF", size: 2516582 },
+      { id: 2, kind: "file", title: "cost-model.xlsx", ext: "XLSX", size: 184320 },
+      { id: 3, kind: "link", title: "Case Study Dataset", url: "https://drive.google.com/drive/folders/feb-cost-case" },
+    ],
     checklist: [
       { id: 1, label: "Classify all cost items", done: true },
       { id: 2, label: "Build contribution margin table", done: true },
@@ -127,7 +132,10 @@ const initialTasks: Task[] = [
     id: 2, title: "Chapter 5 Reading Recap", course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship",
     due: "Today", dueDate: "16 Sep 2026 · 19:00", priority: "Medium", status: "Not started", done: false,
     description: "Read the market entry chapter and summarise control, commitment, and risk for each entry mode before tomorrow's discussion.",
-    attachments: ["Reading guide.pdf"],
+    resources: [
+      { id: 1, kind: "file", title: "Reading guide.pdf", ext: "PDF", size: 841728 },
+      { id: 2, kind: "link", title: "Market entry lecture recap", url: "https://www.youtube.com/watch?v=market-entry" },
+    ],
     checklist: [
       { id: 1, label: "Read pages 120–148", done: false },
       { id: 2, label: "Write one-page summary", done: false },
@@ -137,7 +145,7 @@ const initialTasks: Task[] = [
     id: 3, title: "Pricing Strategy Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
     due: "18 Sep", dueDate: "18 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
     description: "Analyse the pricing ladder of the assigned brand and justify a value-based pricing recommendation.",
-    attachments: ["pricing-case.pdf"],
+    resources: [{ id: 1, kind: "file", title: "pricing-case.pdf", ext: "PDF", size: 1258291 }],
     checklist: [
       { id: 1, label: "Collect competitor prices", done: true },
       { id: 2, label: "Estimate demand elasticity", done: false },
@@ -148,21 +156,24 @@ const initialTasks: Task[] = [
     id: 4, title: "Marketing Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
     due: "20 Sep", dueDate: "20 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
     description: "Market segmentation and positioning analysis for the mid-semester product report.",
-    attachments: [],
+    resources: [],
     checklist: [{ id: 1, label: "Segment the market", done: false }, { id: 2, label: "Map positioning", done: false }],
   },
   {
     id: 5, title: "Literature Matrix", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
     due: "28 Sep", dueDate: "28 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
     description: "Compile ten journal articles into a comparison matrix: research question, method, sample, and findings.",
-    attachments: ["matrix-template.xlsx"],
+    resources: [
+      { id: 1, kind: "file", title: "matrix-template.xlsx", ext: "XLSX", size: 96256 },
+      { id: 2, kind: "link", title: "Scopus search results", url: "https://www.scopus.com/results/feb-riset" },
+    ],
     checklist: [{ id: 1, label: "Select 10 articles", done: false }, { id: 2, label: "Fill the matrix", done: false }],
   },
   {
     id: 6, title: "Research Question Revision", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
     due: "15 Sep", dueDate: "15 Sep 2026 · 23:59", priority: "High", status: "Completed", done: true,
     description: "Revise the research question based on the assistant's feedback and narrow the scope.",
-    attachments: [],
+    resources: [],
     checklist: [{ id: 1, label: "Apply feedback", done: true }, { id: 2, label: "Send to assistant", done: true }],
   },
 ];
@@ -566,10 +577,7 @@ function TaskDetail({ task, onBack, updateTask, toggleTask, navigate }: { task: 
           <div className="mt-4 space-y-2">{task.checklist.length ? task.checklist.map(item => <button key={item.id} onClick={() => toggleItem(item.id)} className="flex w-full items-center gap-3 rounded-xl bg-muted p-3 text-left"><span className={`grid size-5 shrink-0 place-items-center rounded-full border ${item.done ? "border-success bg-success text-academic-foreground" : "border-input bg-background"}`}>{item.done && <Check className="size-3" />}</span><span className={`min-w-0 flex-1 truncate text-sm ${item.done ? "text-muted-foreground line-through" : "font-medium"}`}>{item.label}</span></button>) : <p className="text-sm text-muted-foreground">No checklist items yet.</p>}</div>
         </section>
 
-        <section className="academic-card p-5">
-          <h2 className="text-base font-bold">Attachments</h2>
-          <div className="mt-3 space-y-2">{task.attachments.length ? task.attachments.map(file => <div key={file} className="flex items-center gap-3 rounded-xl bg-muted p-3"><Paperclip className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate text-sm font-medium">{file}</span><Download className="size-4 text-muted-foreground" /></div>) : <p className="text-sm text-muted-foreground">No files attached.</p>}</div>
-        </section>
+        <ResourcesPanel resources={task.resources} onChange={resources => updateTask(task.id, { resources })} />
       </div>
 
       <div className="space-y-6">
