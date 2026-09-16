@@ -13,10 +13,11 @@ type View = "home" | "courses" | "calendar" | "tasks" | "library";
 type TaskCategory = "Accounting" | "Marketing" | "Entrepreneurship" | "Research";
 type TaskStatus = "Not started" | "In progress" | "Completed";
 type ChecklistItem = { id: number; label: string; done: boolean };
+type TaskResource = { id: number; kind: "file" | "link"; title: string; ext?: string; size?: number; url?: string };
 type Task = {
   id: number; title: string; course: string; courseCode?: string; category: TaskCategory;
   due: string; dueDate: string; priority: "High" | "Medium" | "Low"; status: TaskStatus; done: boolean;
-  description: string; attachments: string[]; checklist: ChecklistItem[];
+  description: string; resources: TaskResource[]; checklist: ChecklistItem[];
 };
 type CourseTask = { id: number; title: string; due: string; priority: "High" | "Medium"; status: "Not started" | "In progress" | "Completed" };
 type CourseNote = { id: number; title: string; topic: string; body: string; attachment?: string };
@@ -115,7 +116,11 @@ const initialTasks: Task[] = [
     id: 1, title: "Cost Behavior Worksheet", course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting",
     due: "Today", dueDate: "16 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
     description: "Separate fixed, variable, and mixed costs from the case data, then build the contribution margin model for the Week 3 discussion.",
-    attachments: ["cost-model.xlsx", "Week-3-brief.pdf"],
+    resources: [
+      { id: 1, kind: "file", title: "Cost Behavior Brief.pdf", ext: "PDF", size: 2516582 },
+      { id: 2, kind: "file", title: "cost-model.xlsx", ext: "XLSX", size: 184320 },
+      { id: 3, kind: "link", title: "Case Study Dataset", url: "https://drive.google.com/drive/folders/feb-cost-case" },
+    ],
     checklist: [
       { id: 1, label: "Classify all cost items", done: true },
       { id: 2, label: "Build contribution margin table", done: true },
@@ -127,7 +132,10 @@ const initialTasks: Task[] = [
     id: 2, title: "Chapter 5 Reading Recap", course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship",
     due: "Today", dueDate: "16 Sep 2026 · 19:00", priority: "Medium", status: "Not started", done: false,
     description: "Read the market entry chapter and summarise control, commitment, and risk for each entry mode before tomorrow's discussion.",
-    attachments: ["Reading guide.pdf"],
+    resources: [
+      { id: 1, kind: "file", title: "Reading guide.pdf", ext: "PDF", size: 841728 },
+      { id: 2, kind: "link", title: "Market entry lecture recap", url: "https://www.youtube.com/watch?v=market-entry" },
+    ],
     checklist: [
       { id: 1, label: "Read pages 120–148", done: false },
       { id: 2, label: "Write one-page summary", done: false },
@@ -137,7 +145,7 @@ const initialTasks: Task[] = [
     id: 3, title: "Pricing Strategy Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
     due: "18 Sep", dueDate: "18 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
     description: "Analyse the pricing ladder of the assigned brand and justify a value-based pricing recommendation.",
-    attachments: ["pricing-case.pdf"],
+    resources: [{ id: 1, kind: "file", title: "pricing-case.pdf", ext: "PDF", size: 1258291 }],
     checklist: [
       { id: 1, label: "Collect competitor prices", done: true },
       { id: 2, label: "Estimate demand elasticity", done: false },
@@ -148,21 +156,24 @@ const initialTasks: Task[] = [
     id: 4, title: "Marketing Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
     due: "20 Sep", dueDate: "20 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
     description: "Market segmentation and positioning analysis for the mid-semester product report.",
-    attachments: [],
+    resources: [],
     checklist: [{ id: 1, label: "Segment the market", done: false }, { id: 2, label: "Map positioning", done: false }],
   },
   {
     id: 5, title: "Literature Matrix", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
     due: "28 Sep", dueDate: "28 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
     description: "Compile ten journal articles into a comparison matrix: research question, method, sample, and findings.",
-    attachments: ["matrix-template.xlsx"],
+    resources: [
+      { id: 1, kind: "file", title: "matrix-template.xlsx", ext: "XLSX", size: 96256 },
+      { id: 2, kind: "link", title: "Scopus search results", url: "https://www.scopus.com/results/feb-riset" },
+    ],
     checklist: [{ id: 1, label: "Select 10 articles", done: false }, { id: 2, label: "Fill the matrix", done: false }],
   },
   {
     id: 6, title: "Research Question Revision", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
     due: "15 Sep", dueDate: "15 Sep 2026 · 23:59", priority: "High", status: "Completed", done: true,
     description: "Revise the research question based on the assistant's feedback and narrow the scope.",
-    attachments: [],
+    resources: [],
     checklist: [{ id: 1, label: "Apply feedback", done: true }, { id: 2, label: "Send to assistant", done: true }],
   },
 ];
@@ -566,10 +577,7 @@ function TaskDetail({ task, onBack, updateTask, toggleTask, navigate }: { task: 
           <div className="mt-4 space-y-2">{task.checklist.length ? task.checklist.map(item => <button key={item.id} onClick={() => toggleItem(item.id)} className="flex w-full items-center gap-3 rounded-xl bg-muted p-3 text-left"><span className={`grid size-5 shrink-0 place-items-center rounded-full border ${item.done ? "border-success bg-success text-academic-foreground" : "border-input bg-background"}`}>{item.done && <Check className="size-3" />}</span><span className={`min-w-0 flex-1 truncate text-sm ${item.done ? "text-muted-foreground line-through" : "font-medium"}`}>{item.label}</span></button>) : <p className="text-sm text-muted-foreground">No checklist items yet.</p>}</div>
         </section>
 
-        <section className="academic-card p-5">
-          <h2 className="text-base font-bold">Attachments</h2>
-          <div className="mt-3 space-y-2">{task.attachments.length ? task.attachments.map(file => <div key={file} className="flex items-center gap-3 rounded-xl bg-muted p-3"><Paperclip className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate text-sm font-medium">{file}</span><Download className="size-4 text-muted-foreground" /></div>) : <p className="text-sm text-muted-foreground">No files attached.</p>}</div>
-        </section>
+        <ResourcesPanel resources={task.resources} onChange={resources => updateTask(task.id, { resources })} />
       </div>
 
       <div className="space-y-6">
@@ -592,13 +600,80 @@ function TaskDetail({ task, onBack, updateTask, toggleTask, navigate }: { task: 
   </div>;
 }
 
+const fileKinds: Record<string, string> = { pdf: "PDF", doc: "DOC", docx: "DOCX", xls: "XLS", xlsx: "XLSX", ppt: "PPT", pptx: "PPTX", png: "Image", jpg: "Image", jpeg: "Image", webp: "Image", gif: "Image" };
+const extOf = (name: string) => fileKinds[name.split(".").pop()?.toLowerCase() ?? ""] ?? "File";
+const formatSize = (bytes?: number) => bytes === undefined ? "" : bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+const normalizeUrl = (value: string) => { const trimmed = value.trim(); if (!trimmed) return ""; return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed.replace(/^\/+/, "")}`; };
+const isValidUrl = (value: string) => { try { const url = new URL(normalizeUrl(value)); return url.hostname.includes(".") && url.hostname.length > 3; } catch { return false; } };
+const hostOf = (url?: string) => { try { return new URL(url ?? "").hostname.replace(/^www\./, ""); } catch { return "Link"; } };
+
+function ResourcesPanel({ resources, onChange }: { resources: TaskResource[]; onChange: (resources: TaskResource[]) => void }) {
+  const [showLink, setShowLink] = useState(false);
+  const [linkTitle, setLinkTitle] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const invalid = linkUrl.trim().length > 0 && !isValidUrl(linkUrl);
+
+  const addFiles = (files: FileList | null) => {
+    if (!files?.length) return;
+    const added: TaskResource[] = Array.from(files).map((file, index) => ({
+      id: Date.now() + index, kind: "file", title: file.name, ext: extOf(file.name), size: file.size, url: URL.createObjectURL(file),
+    }));
+    onChange([...resources, ...added]);
+  };
+
+  const saveLink = () => {
+    if (!isValidUrl(linkUrl)) return;
+    const url = normalizeUrl(linkUrl);
+    onChange([...resources, { id: Date.now(), kind: "link", title: linkTitle.trim() || hostOf(url), url }]);
+    setLinkTitle(""); setLinkUrl(""); setShowLink(false);
+  };
+
+  const remove = (id: number) => onChange(resources.filter(item => item.id !== id));
+  const field = "w-full min-w-0 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring";
+
+  return <section className="academic-card p-5">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div><h2 className="text-base font-bold">Resources</h2><p className="mt-1 text-xs text-muted-foreground">Files, datasets, and reference links for this task.</p></div>
+      <div className="flex gap-2">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-muted px-3 py-2 text-xs font-semibold text-foreground"><Paperclip className="size-3.5 text-academic" />Upload file<input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" className="sr-only" onChange={e => { addFiles(e.target.files); e.target.value = ""; }} /></label>
+        <Button variant="outline" size="sm" onClick={() => setShowLink(value => !value)}><Link2 /> Add link</Button>
+      </div>
+    </div>
+
+    {showLink && <div className="mt-4 grid gap-3 rounded-xl border border-dashed border-input p-4 sm:grid-cols-2">
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Title</span><input autoFocus value={linkTitle} onChange={e => setLinkTitle(e.target.value)} placeholder="Case Study Dataset" className={field} /></label>
+      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">URL</span><input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="drive.google.com/…" className={field} /></label>
+      {invalid && <p className="text-xs font-medium text-destructive sm:col-span-2">Enter a valid address, e.g. drive.google.com/file/123</p>}
+      <div className="flex gap-2 sm:col-span-2"><Button variant="academic" size="sm" onClick={saveLink}><Save /> Save link</Button><Button variant="ghost" size="sm" onClick={() => setShowLink(false)}>Cancel</Button></div>
+    </div>}
+
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {resources.length ? resources.map(item => <article key={item.id} className="rounded-xl border border-border bg-muted p-3">
+        <div className="flex items-start gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-academic">{item.kind === "file" ? <FileText className="size-5" /> : <Link2 className="size-5" />}</div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{item.title}</p>
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-[10px] font-semibold text-muted-foreground"><span className="rounded-full bg-background px-2 py-0.5">{item.kind === "file" ? item.ext ?? extOf(item.title) : "Link"}</span>{item.kind === "file" ? formatSize(item.size) : hostOf(item.url)}</p>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          {item.kind === "file"
+            ? <a href={item.url ?? "#"} download={item.title} className="inline-flex items-center gap-1.5 rounded-lg bg-background px-2.5 py-1.5 text-xs font-semibold text-academic"><Download className="size-3.5" />Download</a>
+            : <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg bg-background px-2.5 py-1.5 text-xs font-semibold text-academic"><ExternalLink className="size-3.5" />Open link</a>}
+          <button onClick={() => remove(item.id)} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground"><Trash2 className="size-3.5" />Remove</button>
+        </div>
+      </article>) : <p className="text-sm text-muted-foreground sm:col-span-2">No resources yet. Upload assignment files or attach reference links.</p>}
+    </div>
+  </section>;
+}
+
 function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void; onCancel: () => void }) {
   const [title, setTitle] = useState("");
   const [courseIndex, setCourseIndex] = useState(0);
   const [due, setDue] = useState("");
   const [priority, setPriority] = useState<Task["priority"]>("Medium");
   const [description, setDescription] = useState("");
-  const [attachment, setAttachment] = useState("");
+  const [resources, setResources] = useState<TaskResource[]>([]);
 
   const submit = () => {
     if (!title.trim()) return;
@@ -608,7 +683,7 @@ function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void
       id: Date.now(), title: title.trim(), course: option.course, courseCode: option.courseCode, category: option.category,
       due: dueLabel, dueDate: `${dueLabel} 2026 · 23:59`, priority, status: "Not started", done: false,
       description: description.trim() || "No description added yet.",
-      attachments: attachment.trim() ? [attachment.trim()] : [], checklist: [],
+      resources, checklist: [],
     });
   };
 
@@ -620,7 +695,7 @@ function CreateTaskForm({ onCreate, onCancel }: { onCreate: (task: Task) => void
       <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Course</span><select value={courseIndex} onChange={e => setCourseIndex(Number(e.target.value))} className={field}>{courseOptions.map((option, index) => <option key={option.course} value={index}>{option.course}</option>)}</select></label>
       <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Deadline</span><input value={due} onChange={e => setDue(e.target.value)} placeholder="22 Sep" className={field} /></label>
       <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Priority</span><select value={priority} onChange={e => setPriority(e.target.value as Task["priority"])} className={field}><option>High</option><option>Medium</option><option>Low</option></select></label>
-      <label><span className="mb-1 block text-xs font-semibold text-muted-foreground">Attachment</span><input value={attachment} onChange={e => setAttachment(e.target.value)} placeholder="brief.pdf" className={field} /></label>
+      <label className="flex flex-col"><span className="mb-1 block text-xs font-semibold text-muted-foreground">Resources</span><span className="flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-input px-3 py-2.5 text-sm text-muted-foreground"><Paperclip className="size-4 shrink-0 text-academic" /><span className="min-w-0 flex-1 truncate">{resources.length ? `${resources.length} file${resources.length > 1 ? "s" : ""} attached` : "Upload files"}</span><input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" className="sr-only" onChange={e => { const files = e.target.files; if (files?.length) setResources(current => [...current, ...Array.from(files).map((file, index) => ({ id: Date.now() + index, kind: "file" as const, title: file.name, ext: extOf(file.name), size: file.size, url: URL.createObjectURL(file) }))]); e.target.value = ""; }} /></span></label>
       <label className="sm:col-span-2"><span className="mb-1 block text-xs font-semibold text-muted-foreground">Description</span><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="What needs to be prepared?" className={field} /></label>
     </div>
     <div className="mt-4 flex gap-2"><Button variant="academic" onClick={submit}><Check /> Save task</Button><Button variant="outline" onClick={onCancel}><X /> Cancel</Button></div>
