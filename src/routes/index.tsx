@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LibraryView } from "@/components/library-view";
 
 type View = "home" | "courses" | "calendar" | "tasks" | "library";
 type TaskCategory = "Accounting" | "Marketing" | "Entrepreneurship" | "Research";
