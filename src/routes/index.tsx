@@ -89,12 +89,82 @@ const eventStyles: Record<EventType, { bar: string; dot: string; chip: string; l
   Study: { bar: "bg-success", dot: "bg-success", chip: "bg-success/12 text-success", label: "Personal study", icon: BookOpen },
 };
 
-const initialTasks: Task[] = [
+const taskCategories: TaskCategory[] = ["Accounting", "Marketing", "Entrepreneurship", "Research"];
 
-  { id: 1, title: "Marketing Analysis", course: "Perencanaan Pemasaran", due: "20 Sep", priority: "High", done: false },
-  { id: 2, title: "Cost behavior worksheet", course: "Akuntansi Manajemen", due: "22 Sep", priority: "Medium", done: false },
-  { id: 3, title: "Read chapter 4", course: "Bisnis Internasional", due: "Today", priority: "Medium", done: false },
-  { id: 4, title: "Research question draft", course: "Metode Riset Bisnis", due: "15 Sep", priority: "High", done: true },
+const courseOptions: { course: string; courseCode?: string; category: TaskCategory }[] = [
+  { course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting" },
+  { course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing" },
+  { course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship" },
+  { course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research" },
+];
+
+const priorityStyles: Record<Task["priority"], string> = {
+  High: "bg-destructive/12 text-destructive",
+  Medium: "bg-primary/25 text-foreground",
+  Low: "bg-success/12 text-success",
+};
+
+const statusStyles: Record<TaskStatus, string> = {
+  "Not started": "bg-muted text-muted-foreground",
+  "In progress": "bg-academic/12 text-academic",
+  Completed: "bg-success/12 text-success",
+};
+
+const initialTasks: Task[] = [
+  {
+    id: 1, title: "Cost Behavior Worksheet", course: "Akuntansi Manajemen untuk Bisnis", courseCode: "ECAC600056", category: "Accounting",
+    due: "Today", dueDate: "16 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
+    description: "Separate fixed, variable, and mixed costs from the case data, then build the contribution margin model for the Week 3 discussion.",
+    attachments: ["cost-model.xlsx", "Week-3-brief.pdf"],
+    checklist: [
+      { id: 1, label: "Classify all cost items", done: true },
+      { id: 2, label: "Build contribution margin table", done: true },
+      { id: 3, label: "Write interpretation paragraph", done: false },
+      { id: 4, label: "Submit to EMAS", done: false },
+    ],
+  },
+  {
+    id: 2, title: "Chapter 5 Reading Recap", course: "Bisnis Internasional", courseCode: "ECMN600020", category: "Entrepreneurship",
+    due: "Today", dueDate: "16 Sep 2026 · 19:00", priority: "Medium", status: "Not started", done: false,
+    description: "Read the market entry chapter and summarise control, commitment, and risk for each entry mode before tomorrow's discussion.",
+    attachments: ["Reading guide.pdf"],
+    checklist: [
+      { id: 1, label: "Read pages 120–148", done: false },
+      { id: 2, label: "Write one-page summary", done: false },
+    ],
+  },
+  {
+    id: 3, title: "Pricing Strategy Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
+    due: "18 Sep", dueDate: "18 Sep 2026 · 23:59", priority: "High", status: "In progress", done: false,
+    description: "Analyse the pricing ladder of the assigned brand and justify a value-based pricing recommendation.",
+    attachments: ["pricing-case.pdf"],
+    checklist: [
+      { id: 1, label: "Collect competitor prices", done: true },
+      { id: 2, label: "Estimate demand elasticity", done: false },
+      { id: 3, label: "Draft recommendation slide", done: false },
+    ],
+  },
+  {
+    id: 4, title: "Marketing Analysis", course: "Manajemen Produk dan Harga", courseCode: "ECMN600040", category: "Marketing",
+    due: "20 Sep", dueDate: "20 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
+    description: "Market segmentation and positioning analysis for the mid-semester product report.",
+    attachments: [],
+    checklist: [{ id: 1, label: "Segment the market", done: false }, { id: 2, label: "Map positioning", done: false }],
+  },
+  {
+    id: 5, title: "Literature Matrix", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
+    due: "28 Sep", dueDate: "28 Sep 2026 · 23:59", priority: "Medium", status: "Not started", done: false,
+    description: "Compile ten journal articles into a comparison matrix: research question, method, sample, and findings.",
+    attachments: ["matrix-template.xlsx"],
+    checklist: [{ id: 1, label: "Select 10 articles", done: false }, { id: 2, label: "Fill the matrix", done: false }],
+  },
+  {
+    id: 6, title: "Research Question Revision", course: "Metode Riset Bisnis", courseCode: "ECMN600018", category: "Research",
+    due: "15 Sep", dueDate: "15 Sep 2026 · 23:59", priority: "High", status: "Completed", done: true,
+    description: "Revise the research question based on the assistant's feedback and narrow the scope.",
+    attachments: [],
+    checklist: [{ id: 1, label: "Apply feedback", done: true }, { id: 2, label: "Send to assistant", done: true }],
+  },
 ];
 
 export const Route = createFileRoute("/")({
